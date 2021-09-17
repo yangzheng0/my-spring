@@ -1,8 +1,11 @@
 package com.yangzheng.springframework.beans.factory.support;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.yangzheng.springframework.beans.BeansException;
+import com.yangzheng.springframework.beans.PropertyValue;
 import com.yangzheng.springframework.beans.PropertyValues;
 import com.yangzheng.springframework.beans.factory.config.BeanDefinition;
+import com.yangzheng.springframework.beans.factory.config.BeanReference;
 
 import java.lang.reflect.Constructor;
 
@@ -32,6 +35,21 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     protected void applyPropertyValues(String beanName, Object bean, BeanDefinition beanDefinition){
         try{
             PropertyValues propertyValues = beanDefinition.getPropertyValues();
+            for (PropertyValue propertyValue : propertyValues.getPropertyValues()) {
+
+                String name = propertyValue.getName();
+                Object value = propertyValue.getValue();
+
+                if (value instanceof BeanDefinition) {
+                    // A 依赖 B, 获取B 的实例化
+                    BeanReference beanReference = (BeanReference) value;
+                    value = getBean(beanReference.getBeanName());
+                }
+
+                // 属性填充
+                BeanUtil.setFieldValue(bean,name,value);
+
+            }
         }catch (Exception e) {
 
         }
